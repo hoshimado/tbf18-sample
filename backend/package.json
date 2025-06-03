@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "cross-env NODE_ENV=debug-id-wihtout-oidc   DEBUG_USER_PROFILE_ID=local_special_id   DEBUG_USER_PROFILE_DISPLAYNAM=User4Skip-OIDC   mocha --recursive",
+    "test": "cross-env NODE_ENV=test   DEBUG_USER_PROFILE_ID=local_special_id   mocha --recursive",
     "local4vite-backend": "cross-env FRONTEND_ORIGIN=http://localhost:5173    npm run dev:mock-of-oidc",
     "dev:mock-of-oidc": "cross-env NODE_ENV=debug-id-wihtout-oidc   DEBUG_USER_PROFILE_ID=local_special_id   DEBUG_USER_PROFILE_DISPLAYNAM=User4Skip-OIDC   npm run dev",
     "dev": "cross-env DEBUG=myapp:*   dotenv -e .env.development.local -- node-dev server.js",

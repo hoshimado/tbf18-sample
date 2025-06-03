@@ -34,7 +34,10 @@ router.post('/token', (req, res) => {
     if (req.session && req.session.passport && req.session.passport.user && req.session.passport.user.sub) {
         userSubClaim = req.session.passport.user.sub;
     }
-    if( process.env.NODE_ENV == 'debug-id-wihtout-oidc' ){
+    if( 
+        process.env.NODE_ENV == 'test' || 
+        process.env.NODE_ENV == 'debug-id-wihtout-oidc'
+    ) {
         // テスト環境ではリクエストボディのsutbsubキーを参照して、
         // その値が DEBUG_USER_PROFILE_ID であれば、
         // テスト用のユーザーID(subクレーム)を返却する。

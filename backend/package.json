@@ -1,0 +1,41 @@
+{
+  "name": "backend-api",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "cross-env NODE_ENV=debug-id-wihtout-oidc   DEBUG_USER_PROFILE_ID=local_special_id   DEBUG_USER_PROFILE_DISPLAYNAM=User4Skip-OIDC   mocha --recursive",
+    "local4vite-backend": "cross-env FRONTEND_ORIGIN=http://localhost:5173    npm run dev:mock-of-oidc",
+    "dev:mock-of-oidc": "cross-env NODE_ENV=debug-id-wihtout-oidc   DEBUG_USER_PROFILE_ID=local_special_id   DEBUG_USER_PROFILE_DISPLAYNAM=User4Skip-OIDC   npm run dev",
+    "dev": "cross-env DEBUG=myapp:*   dotenv -e .env.development.local -- node-dev server.js",
+    "start:on-ec2": "dotenv -e .env.production.ec2 -- npm run start",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "cors": "^2.8.5",
+    "debug": "~2.6.9",
+    "dotenv-cli": "^8.0.0",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "~1.9.1",
+    "passport": "^0.7.0",
+    "passport-openidconnect": "^0.1.2"
+  },
+  "author": "Hoshimado",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^5.2.0",
+    "chai-http": "^5.1.1",
+    "cross-env": "^7.0.3",
+    "mocha": "^11.1.0",
+    "node-dev": "^8.0.0",
+    "sinon": "^20.0.0"
+  }
+}

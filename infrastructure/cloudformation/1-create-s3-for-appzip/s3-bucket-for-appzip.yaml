@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for storing application deployment ZIPs
+
+Resources:
+  AppCodeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-app-code-bucket"
+      VersioningConfiguration:
+        Status: Suspended
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+Outputs:
+  AppCodeBucketName:
+    Description: "Name of the bucket to upload app ZIP files"
+    Value: !Ref AppCodeBucket

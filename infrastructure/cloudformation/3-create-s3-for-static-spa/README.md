@@ -12,5 +12,5 @@
 
 * [s3-bucket-for-frontend-public-spa.yaml](./s3-bucket-for-frontend-public-spa.yaml)
 
-S3バケットを作成したら、本文の手順に従って `frontend/dist` 配下のファイルをアップロードしてください。
+S3バケットを作成したら、本文の手順にしたがって `frontend/dist` 配下のファイルをアップロードしてください。
 

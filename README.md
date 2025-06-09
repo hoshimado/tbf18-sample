@@ -62,4 +62,7 @@
 * [lambda](./infrastructure/lambda/README.md)の「[§4.1](./infrastructure/lambda/README.md#41-apiの実装をlambdaでの呼び出し用に切り出しzip-にしてs3に配置)」節の案内を参照してください。
 
 
+## §4.2 API Gatewayを経由したLambda関数のエンドポイントを公開
+
+* [lambda](./infrastructure/lambda/README.md)の「[§4.2](./infrastructure/lambda/README.md#42-api-gatewayを経由したlambda関数のエンドポイントを公開)」節の案内を参照してください。
 

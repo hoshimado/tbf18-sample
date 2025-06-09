@@ -45,7 +45,7 @@ Resources:
       CorsConfiguration:
         AllowOrigins:
           - 'http://localhost:5173'
-          - 'https://d34oklk6ch12y3.cloudfront.net'
+          - '＜S3用に設定したCloudFrontのドメインをプロトコルを含めて記述。例: https://d34oklk6ch12y3.cloudfront.net ＞'
         AllowMethods:
           - POST
         AllowHeaders:

@@ -13,7 +13,7 @@
 * [s3-bucket-for-appzip.yaml](./s3-bucket-for-appzip.yaml)
 
 
-S3バケットの作成後、本書の手順に従って、アプリケーション一式をZipファイルにまとめます。  
+S3バケットの作成後、本文の手順に従って、アプリケーション一式をZipファイルにまとめます。  
 Zipファイルの作成には、以下のスクリプトを使用してください。
 
 * backend配下にある [s3-build-appzip4ec2base.bat.txt](../../../backend/s3-build-appzip4ec2base.bat.txt)

@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for hosting Vue.js SPA
+
+Resources:
+  FrontendHostingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-static-hosting-bucket"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendHostingBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "${FrontendHostingBucket.Arn}/*"
+
+Outputs:
+  FrontendBucketName:
+    Description: "Name of the S3 bucket for SPA hosting"
+    Value: !Ref FrontendHostingBucket
+
+  WebsiteURL:
+    Description: "S3 Static Website Hosting URL"
+    Value: !GetAtt FrontendHostingBucket.WebsiteURL

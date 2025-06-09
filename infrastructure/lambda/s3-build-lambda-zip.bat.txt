@@ -1,0 +1,41 @@
+@echo off
+pushd "%~dp0"
+setlocal
+
+REM === substでTドライブにマウント ===
+set "CURDIR=%CD%"
+subst T: "%CURDIR%"
+pushd T:\
+
+REM === パス設定 ===
+set "OUTPUT_DIR=dist"
+set "ZIP_PATH=%OUTPUT_DIR%\lambda-function.zip"
+
+REM === 出力先フォルダが無ければ作成 ===
+if not exist "%OUTPUT_DIR%" (
+    mkdir "%OUTPUT_DIR%"
+)
+
+
+
+
+REM === 出力先に既存zipがあれば、削除 ===
+del /f /q "%ZIP_PATH%" >nul 2>&1
+
+REM === PowerShell で Zip 作成 ===
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "Compress-Archive -Path @('index.js', 'package.json', 'node_modules', 'api', 'shared') -DestinationPath '%ZIP_PATH%' -Force"
+
+REM エラーがなかった場合のみメッセージを表示
+if %ERRORLEVEL% equ 0 (
+    echo.
+    echo - Zipファイルを作成しました: %ZIP_PATH%
+    echo.
+)
+
+REM === 元のディレクトリに戻る & subst解除 ===
+popd
+subst T: /d
+
+endlocal
+popd

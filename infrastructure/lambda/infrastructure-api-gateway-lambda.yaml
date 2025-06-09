@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Greeting API using Lambda and HTTP API (POST, JWT protected, CORS enabled)
+
+Resources:
+  GreetingFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: GreetingFunction
+      Handler: index.handler
+      Runtime: nodejs22.x
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: appzip-s3-app-code-bucket
+        S3Key: lambda-function.zip
+      Timeout: 10
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaExecutionRoleForGreeting
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AllowBasicLambdaLogging
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+
+  GreetingHttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: GreetingHttpApi
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins:
+          - 'http://localhost:5173'
+          - 'https://d34oklk6ch12y3.cloudfront.net'
+        AllowMethods:
+          - POST
+        AllowHeaders:
+          - Authorization
+          - Content-Type
+        MaxAge: 86400
+
+  GreetingHttpApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref GreetingHttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GreetingFunction.Arn}/invocations
+      PayloadFormatVersion: '2.0'
+
+  GreetingHttpApiRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref GreetingHttpApi
+      RouteKey: POST /greeting
+      Target: !Sub integrations/${GreetingHttpApiIntegration}
+
+  GreetingHttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref GreetingHttpApi
+      StageName: api
+      AutoDeploy: true
+
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GreetingFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${GreetingHttpApi}/api/POST/greeting

@@ -57,4 +57,9 @@
 
 # 4章：
 
+## §4.1 APIの実装をLambdaでの呼び出し用に切り出し、Zip にしてS3に配置
+
+* [lambda](./infrastructure/lambda/README.md)の「[§4.1](./infrastructure/lambda/README.md#41-apiの実装をlambdaでの呼び出し用に切り出しzip-にしてs3に配置)」節の案内を参照してください。
+
+
 

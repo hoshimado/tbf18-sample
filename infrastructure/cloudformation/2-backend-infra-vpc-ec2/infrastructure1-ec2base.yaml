@@ -1,0 +1,327 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Sample AWS infrastructure with VPC, subnets, EC2 (Nginx + App), and networking - SSM対応版
+
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+
+Resources:
+
+  # 1. IAMロール（SSMアクセス許可、S3読み込み許可）
+  NginxEC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      RoleName: MyNginxEC2Role
+
+  NginxInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref NginxEC2Role
+      InstanceProfileName: MyEC2NginxProfile
+  
+  AppEC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: AllowS3Read
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: arn:aws:s3:::appzip-s3-app-code-bucket/*
+      RoleName: MyAppEC2Role
+
+  AppInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref AppEC2Role
+      InstanceProfileName: MyEC2AppProfile
+
+
+
+  # 2. VPCとサブネット等のリソース作成
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyVPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  NatEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+  NginxSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP/HTTPS and SSH access
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow traffic from Nginx only
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref NginxSecurityGroup
+
+  NginxInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.nano
+      KeyName: !Ref KeyName
+      ImageId: ami-0c2da9ee6644f16e5  # Amazon Linux 2023 (東京リージョン例)。適切なAmazon Linux 2 AMI IDに置き換えてください。
+      IamInstanceProfile: !Ref NginxInstanceProfile # SSMアクセス許可を付与
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          SubnetId: !Ref PublicSubnet
+          GroupSet:
+            - !Ref NginxSecurityGroup
+      Tags:
+        - Key: Name
+          Value: NginxProxy
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y nginx
+
+          systemctl enable nginx
+          systemctl start nginx
+
+          # nginx.conf を上書き（不要なデフォルト server を除く）
+          cat > /etc/nginx/nginx.conf <<EOF
+          user nginx;
+          worker_processes auto;
+          error_log /var/log/nginx/error.log notice;
+          pid /run/nginx.pid;
+
+          include /usr/share/nginx/modules/*.conf;
+
+          events {
+              worker_connections 1024;
+          }
+
+          http {
+              log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                                '$status $body_bytes_sent "$http_referer" '
+                                '"$http_user_agent" "$http_x_forwarded_for"';
+
+              access_log  /var/log/nginx/access.log  main;
+
+              sendfile            on;
+              tcp_nopush          on;
+              keepalive_timeout   65;
+              types_hash_max_size 4096;
+
+              include             /etc/nginx/mime.types;
+              default_type        application/octet-stream;
+
+              # ここで reverse-proxy.conf を読み込む（server ブロック定義は外部に分離）
+              include /etc/nginx/conf.d/*.conf;
+          }
+          EOF
+
+          # AppInstanceのプライベートIPを設定（簡易化のため固定値で設定）
+          APP_INSTANCE_IP=10.0.2.10
+
+          # Nginxの設定をリバースプロキシに変更
+          # ※一般的には、"proxy_set_header X-Forwarded-Proto https\$scheme;"とするが、
+          #   AWS CouldFrontは $shemeを送らないため（仕様）、参照せずに固定でhttpsとして扱う。
+          #   もちろん代替として参照する手法はあるが、簡易化のためここでは固定値を採用する。
+          #   参考: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html
+          cat <<EOF > /etc/nginx/conf.d/reverse-proxy.conf
+          server {
+              listen 80;
+              location / {
+                  proxy_pass http://$APP_INSTANCE_IP:3000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade \$http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Forwarded-Proto https;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_cache_bypass \$http_upgrade;
+              }
+          }
+          EOF
+
+          systemctl restart nginx
+
+
+  AppInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.nano
+      KeyName: !Ref KeyName
+      ImageId: ami-0c2da9ee6644f16e5
+      IamInstanceProfile: !Ref AppInstanceProfile # SSMアクセスとS3読み込みを許可を付与
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId: !Ref PrivateSubnet
+          GroupSet:
+            - !Ref AppSecurityGroup
+          PrivateIpAddress: 10.0.2.10  # ← 固定IP（NginxInstance側でこの値を利用）
+      Tags:
+        - Key: Name
+          Value: NodeAppServer
+      UserData:
+        'Fn::Base64': !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y gcc-c++ make unzip curl
+          curl -sL https://rpm.nodesource.com/setup_18.x | bash -
+          yum install -y nodejs
+
+          # 作業ディレクトリの作成
+          mkdir -p /opt/app
+          cd /opt/app
+
+          # S3 からアプリZip取得（公開バケット or アタッチしたIAMロール必要）
+          aws s3 cp s3://appzip-s3-app-code-bucket/myapp.zip ./app.zip
+
+          unzip app.zip
+          rm app.zip
+
+          # パッケージインストール
+          npm install --production
+
+          # systemdサービスとして登録（簡易例）
+          cat <<EOF > /etc/systemd/system/myapp.service
+          [Unit]
+          Description=Node.js Application
+
+          [Service]
+          ExecStart=/usr/bin/npm run start:on-ec2
+          Restart=always
+          User=nobody
+          Group=nobody
+          Environment=PORT=3000
+          WorkingDirectory=/opt/app
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+
+          # サービス起動・有効化
+          systemctl daemon-reexec
+          systemctl daemon-reload
+          systemctl enable myapp
+          systemctl start myapp

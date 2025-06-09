@@ -66,3 +66,12 @@
 
 * [lambda](./infrastructure/lambda/README.md)の「[§4.2](./infrastructure/lambda/README.md#42-api-gatewayを経由したlambda関数のエンドポイントを公開)」節の案内を参照してください。
 
+
+## §4.2.1 フロントエンドの設定を変更して再公開
+
+> ※本節のタイトルは、技術同人誌の**版によって「§4.3 フロントエンドの設定を変更して再公開」**となる場合があります。  
+> 最新の版にあわせて確認してください。
+
+* [frontend](./frontend/README.md)の「[§4.2.1](./frontend/README.md#421-フロントエンドの設定を変更して再公開)」節の案内を参照してください。
+
+

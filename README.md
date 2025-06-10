@@ -36,7 +36,7 @@
 
 ### §2.4.7 HTTPSドメインに合わせてアプリ側を再設定する
 
-* [backend](./backend/README.md)の「[§2.4.7 HTTPSドメインに合わせてアプリ側を再設定する](./backend/README.md#247-httpsドメインに合わせてアプリ側を再設定をする)」節の案内を参照ください。
+* `./backend` フォルダー内の [README.md](./backend/README.md) の「[§2.4.7 HTTPSドメインに合わせてアプリ側を再設定する](./backend/README.md#247-httpsドメインに合わせてアプリ側を再設定をする)」節を参照してください。
 
 
 

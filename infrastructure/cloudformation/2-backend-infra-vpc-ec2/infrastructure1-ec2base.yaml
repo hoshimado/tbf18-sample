@@ -295,6 +295,7 @@ Resources:
           cd /opt/app
 
           # S3 からアプリZip取得（公開バケット or アタッチしたIAMロール必要）
+          # ※自身の環境のS3バケット名に合わせて書き換えてください
           aws s3 cp s3://appzip-s3-app-code-bucket/myapp.zip ./app.zip
 
           unzip app.zip

@@ -10,7 +10,7 @@ Resources:
       Runtime: nodejs22.x
       Role: !GetAtt LambdaExecutionRole.Arn
       Code:
-        S3Bucket: appzip-s3-app-code-bucket
+        S3Bucket: appzip-s3-app-code-bucket  # ※自身の環境のS3バケット名に合わせて書き換えてください
         S3Key: lambda-function.zip
       Timeout: 10
 

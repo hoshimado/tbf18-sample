@@ -87,7 +87,7 @@ http://localhost:3000/
 
 ```
 # ↓リモート配置＆HTTPS利用時は以下を設定　※文末にスラッシュを記載しないこと。
-# THIS_PROTOCOL_AND_DOMAIN=＜リモート配置時のドメインをプロトコルを含めて記述。例: https://dxhdh6471qt8w.cloudfront.net ＞
+# PROTOCOL_AND_DOMAIN=＜リモート配置時のドメインをプロトコルを含めて記述。例: https://dxhdh6471qt8w.cloudfront.net ＞
 ```
 
 この行のコメントアウトを解除し、  

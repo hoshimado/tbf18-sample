@@ -6,10 +6,13 @@
 
 掲題の本は下記で頒布中です。
 
- * [技術書典オンラインマーケット内配布ページ](https://techbookfest.org/product/2j4emmuYQ9yMhvmMHhnMY5)
+ * [技術書典オンラインマーケットでの配布ページ](https://techbookfest.org/product/2j4emmuYQ9yMhvmMHhnMY5)
+* [BOOTHでの頒布ページ](https://xingyanhuan.booth.pm/items/7033669)
+
+なお、サンプルコードを実際に動かしながら検証・追体験する場合は、**電子版の最新版**（2026-01-07時点では1.4版）に記載されている手順を参照してください。  
+電子版の最新版では、誤記修正とともに、初版刊行後のUIや手順の変更を反映しています。
 
 <br><br><br>
-
 
 
 # 1章：
